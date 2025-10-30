@@ -67,7 +67,7 @@ class RFDETR(Inferencer):
             boxes[:, [0, 2]] *= image.shape[1]
             boxes[:, [1, 3]] *= image.shape[0]*aspect
         else:
-            boxes[:, [0, 2]] *= image.shape[1]*aspect
+            boxes[:, [0, 2]] *= image.shape[1]/aspect
             boxes[:, [1, 3]] *= image.shape[0]
         return ObjectDetectionResult(
             original_img=image,
