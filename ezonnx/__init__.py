@@ -18,7 +18,9 @@ from ezonnx.models.rfdetr.rfdetr_seg import RFDETRSeg
 from ezonnx.models.dfine.dfine_hf import DFINE
 from ezonnx.models.rtmdet.rtmdet import RTMDet
 from ezonnx.models.yolo.det import YOLO
+from ezonnx.models.yolo26.det import YOLO26
 from ezonnx.models.yolo.seg import YOLOSeg
+from ezonnx.models.yolo26.seg import YOLO26Seg
 from ezonnx.models.yolo.obb import YOLOOBB
 from ezonnx.models.yunet.yunet import YuNet
 #pose

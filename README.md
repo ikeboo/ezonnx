@@ -24,7 +24,7 @@ print(res.class_token, res.patch_tokens)
     - ImageClassifier(ConvNeXt,ViT,EfficientNetV2,CoAtNet and others.)
     - SigLIP2  (zero-shot classification)
 - [Object detection](examples/object_detection.ipynb)
-    - YOLOv8, YOLO11
+    - YOLO26, YOLO11, YOLOv8
     - YOLO-OBB (v8,11)
     - RF-DETR
     - D-FINE
