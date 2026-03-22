@@ -60,6 +60,8 @@ print(res.class_token, res.patch_tokens)
     - Real-ESRGAN
 - [Image matching](examples/image_matching.ipynb)
     - ALIKED LightGlue
+- [Point Cloud Registration](examples/point_cloud_registration.ipynb)
+    - RAP
 ---
 
 ## 🛠️ Setup

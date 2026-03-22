@@ -16,9 +16,11 @@ classifiers = [
 
 dependencies = [
     "numpy",
+    "numba",
     "onnx>=1.18.0",
     "onnxruntime>=1.22.1",
     "opencv-python",
+    "open3d",
     "huggingface-hub",
     "pydantic",
     "scikit-learn",
