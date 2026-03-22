@@ -1,6 +1,5 @@
 from pydantic import BaseModel, ConfigDict
 from abc import ABC, abstractmethod
-from typing import List, Optional, Dict
 import numpy as np
 
 class Result(BaseModel,ABC):
