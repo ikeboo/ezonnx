@@ -10,10 +10,11 @@ from pydantic import ConfigDict, Field
 from .result import Result
 
 
-class RegisteredPointCloudResult(Result):
+class RegisteredPointCloud(Result):
 	"""Data class for point cloud registration results.
 
 	Attributes:
+		original_data (List[Any]): Original input point clouds before registration.
 		data (List[Any]): Registered point clouds. The first point cloud is the fixed reference.
 		translations (List[np.ndarray]): Rigid transformation matrices in shape (4, 4).
 			The first transform corresponds to the fixed reference point cloud.
@@ -27,6 +28,7 @@ class RegisteredPointCloudResult(Result):
 	original_img: np.ndarray = Field(
 		default_factory=lambda: np.empty((0, 0, 3), dtype=np.uint8)
 	)
+	original_data: List[Any] = Field(default_factory=list)
 	data: List[Any]
 	translations: List[np.ndarray]
 	image_size: Tuple[int, int] = (1024, 1024)
@@ -35,17 +37,18 @@ class RegisteredPointCloudResult(Result):
 
 	_OPEN3D_MODULE: ClassVar[Any | None] = None
 	_PALETTE: ClassVar[List[Tuple[int, int, int]]] = [
-		(255, 99, 71),
-		(60, 179, 113),
-		(65, 105, 225),
-		(255, 165, 0),
-		(186, 85, 211),
-		(64, 224, 208),
-		(220, 20, 60),
-		(255, 215, 0),
+		(100, 100, 100),
+		(255, 0, 0),
+		(0, 165, 255),
+		(0, 180, 0),
+		(255, 0, 255),
+		(255, 255, 0),
+		(255, 0, 128),
+		(0, 255, 255),
+		(128, 0, 255),
 	]
 
-	def _vizualize(self) -> np.ndarray:
+	def _visualize(self) -> np.ndarray:
 		"""Visualize registered point clouds from a top-down viewpoint.
 
 		Open3D is imported lazily on the first visualization call.
@@ -61,6 +64,10 @@ class RegisteredPointCloudResult(Result):
 			return self._render_with_open3d(point_clouds, o3d)
 		except Exception:
 			return self._render_top_view(point_clouds)
+
+	def _vizualize(self) -> np.ndarray:
+		"""Backward-compatible alias for the previous misspelled method name."""
+		return self._visualize()
 
 	@classmethod
 	def _get_open3d(cls) -> Any:
@@ -80,6 +87,8 @@ class RegisteredPointCloudResult(Result):
 			raise ValueError("data must contain at least one point cloud.")
 		if len(self.data) != len(self.translations):
 			raise ValueError("data and translations must have the same length.")
+		if len(self.original_data) not in {0, len(self.data)}:
+			raise ValueError("original_data must be empty or have the same length as data.")
 		if self.image_size[0] <= 0 or self.image_size[1] <= 0:
 			raise ValueError("image_size must contain positive integers.")
 		if self.point_size <= 0:

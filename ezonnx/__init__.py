@@ -36,6 +36,7 @@ from ezonnx.models.depthanythingv2.depthanythingv2 import DepthAnythingV2
 from ezonnx.models.lama.lama import LaMa
 from ezonnx.models.neuflowv2.neuflowv2 import NeuFlowV2
 from ezonnx.models.realesrgan.realesrgan import RealESRGAN
+from ezonnx.models.rap.rap import RAP
 
 from ezonnx.models.ppocr.ppocr import PPOCR
 from ezonnx.models.alikedlightglue.alikedlightglue import ALIKEDLightGlue
@@ -43,5 +44,6 @@ from ezonnx.models.alikedlightglue.alikedlightglue import ALIKED
 from ezonnx.models.lightglue.lightglue import LightGlue
 
 from ezonnx.ops.visualize import visualize_images
+from ezonnx.ops.visualize import visualize_point_clouds
 from ezonnx.ops.visualize import show_3d_poses
 from ezonnx.core.downloader import get_weights
