@@ -42,6 +42,7 @@ import onnxruntime as ort
 
 from ...core.downloader import get_weights
 from ...data_classes.registered_point_cloud import RegisteredPointCloud
+from .minispinnet import MiniSpinNet
 
 try:
     from numba import njit
@@ -247,7 +248,6 @@ class RAP:
         self._outlier_nb_neighbors = outlier_nb_neighbors
         self._outlier_std_ratio = outlier_std_ratio
         self._rigidity_forcing = rigidity_forcing
-        self._spinnet_patch_sample = 512
         self._rng = np.random.default_rng(seed)
         self.last_registered: List[np.ndarray] = []
         self.last_transforms: List[np.ndarray] = []
@@ -268,9 +268,7 @@ class RAP:
             providers=["CPUExecutionProvider"],
         )
 
-        self._spinnet_sess: Optional[ort.InferenceSession] = None
-        self._spinnet_input_names: set[str] = set()
-        self._spinnet_accepts_des_r = False
+        self._spinnet: Optional[MiniSpinNet] = None
         try:
             spinnet_path = self._resolve_model_asset(
                 model_path=spinnet_path,
@@ -283,15 +281,12 @@ class RAP:
 
         if spinnet_path is not None:
             try:
-                self._spinnet_sess = ort.InferenceSession(
-                    spinnet_path,
+                self._spinnet = MiniSpinNet(
+                    onnx_path=spinnet_path,
+                    patch_sample=512,
                     sess_options=sess_opts,
                     providers=["CPUExecutionProvider"],
                 )
-                self._spinnet_input_names = {
-                    inp.name for inp in self._spinnet_sess.get_inputs()
-                }
-                self._spinnet_accepts_des_r = "des_r" in self._spinnet_input_names
             except Exception as exc:
                 warnings.warn(
                     f"SpinNet ONNX could not be loaded ({exc}); "
@@ -616,7 +611,7 @@ class RAP:
         """Extract per-point SpinNet descriptors if ONNX model is available."""
         total_points = int(offsets[-1])
         feat_out = np.zeros((total_points, 32), dtype=np.float32)
-        if self._spinnet_sess is None:
+        if self._spinnet is None:
             return feat_out
 
         for i, (pts_ref, kpts) in enumerate(zip(voxel_parts, sampled_parts)):
@@ -624,22 +619,7 @@ class RAP:
             if len(kpts) == 0:
                 continue
             try:
-                pts_input = pts_ref.astype(np.float32, copy=False)
-                if len(pts_input) < self._spinnet_patch_sample:
-                    repeat = int(np.ceil(self._spinnet_patch_sample / max(len(pts_input), 1)))
-                    pts_input = np.tile(pts_input, (repeat, 1))[:self._spinnet_patch_sample]
-
-                ort_inputs: Dict[str, Any] = {
-                    "pts": pts_input[np.newaxis],
-                    "kpts": kpts.astype(np.float32, copy=False)[np.newaxis],
-                }
-                if self._spinnet_accepts_des_r:
-                    ort_inputs["des_r"] = np.array([des_r], dtype=np.float32)
-
-                feats = np.asarray(self._spinnet_sess.run(["features"], ort_inputs)[0])
-                if feats.ndim == 3 and feats.shape[0] == 1:
-                    feats = feats[0]
-                feat_out[s:e] = feats.astype(np.float32, copy=False)
+                feat_out[s:e] = self._spinnet(pts_ref, kpts, des_r)
             except Exception:
                 pass
         return feat_out
